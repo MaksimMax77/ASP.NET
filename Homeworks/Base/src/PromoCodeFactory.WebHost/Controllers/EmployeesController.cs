@@ -70,5 +70,19 @@ namespace PromoCodeFactory.WebHost.Controllers
 
             return employeeModel;
         }
+
+        [HttpPost]
+        public Task<ActionResult<EmployeeResponse>> Create(string firstName, string lastName)
+        {
+            var newEmployee = new Employee
+            {
+                Id = Guid.NewGuid(),
+                FirstName = firstName,
+                LastName = lastName
+            };
+            
+            _employeeRepository.Create(newEmployee);
+            return Task.FromResult<ActionResult<EmployeeResponse>>(Created());
+        }
     }
 }
