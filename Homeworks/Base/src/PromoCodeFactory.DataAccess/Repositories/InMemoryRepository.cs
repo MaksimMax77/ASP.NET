@@ -4,11 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using PromoCodeFactory.Core.Abstractions.Repositories;
 using PromoCodeFactory.Core.Domain;
+
 namespace PromoCodeFactory.DataAccess.Repositories
 {
-    public class InMemoryRepository<T>: IRepository<T> where T: BaseEntity
+    public class InMemoryRepository<T> : IRepository<T> where T : BaseEntity
     {
-        protected  IList<T> Data { get; set; }
+        protected IList<T> Data { get; set; }
 
         public InMemoryRepository(IList<T> data)
         {
@@ -24,10 +25,20 @@ namespace PromoCodeFactory.DataAccess.Repositories
         {
             return Task.FromResult(Data.FirstOrDefault(x => x.Id == id));
         }
-
-        public void Create(T entity)
+        
+        public async Task CreateAsync(T entity)
         {
-            Data.Add(entity);
+            await Task.Run(()=>
+            {
+                Data.Add(entity);
+            });
+        }
+        
+        public Task<T> DeleteById(Guid id)
+        {
+            var searchResult = Task.FromResult(Data.FirstOrDefault(x => x.Id == id));
+            Data.Remove(searchResult.Result);
+            return searchResult;
         }
     }
 }

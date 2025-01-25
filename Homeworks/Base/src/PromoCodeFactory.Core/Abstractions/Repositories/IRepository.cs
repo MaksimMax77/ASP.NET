@@ -7,8 +7,9 @@ namespace PromoCodeFactory.Core.Abstractions.Repositories
 {
     public interface IRepository<T> where T : BaseEntity
     {
-        Task<IList<T>> GetAllAsync();
-        Task<T> GetByIdAsync(Guid id);
-        void Create(T entity);
+        public Task<IList<T>> GetAllAsync();
+        public Task<T> GetByIdAsync(Guid id);
+        public Task CreateAsync(T entity);
+        public Task<T> DeleteById(Guid id);
     }
 }

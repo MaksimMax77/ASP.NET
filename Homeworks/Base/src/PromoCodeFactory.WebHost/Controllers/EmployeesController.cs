@@ -54,8 +54,72 @@ namespace PromoCodeFactory.WebHost.Controllers
 
             if (employee == null)
                 return NotFound();
+            
+            return CreateEmployeeResponse(employee);
+        }
 
-            var employeeModel = new EmployeeResponse()
+        /// <summary>
+        /// Создать пользователя
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<ActionResult<EmployeeResponse>> CreateUserAsync(string firstName, 
+            string lastName, string email, string roleName)
+        {
+            var newEmployee = new Employee
+            {
+                Id = Guid.NewGuid(),
+                FirstName = firstName,
+                LastName = lastName,
+                Email = email,
+                Roles = new List<Role>()
+                {
+                    new()
+                    {
+                        Name = roleName
+                    }
+                }
+            };
+
+            await _employeeRepository.CreateAsync(newEmployee);
+            
+            return CreateEmployeeResponse(newEmployee);
+        }
+        
+        /// <summary>
+        /// Удалить пользователя
+        /// </summary>
+        /// <returns></returns>
+        [HttpDelete("{id:guid}")]
+        public async Task<ActionResult<EmployeeResponse>> DeleteUserByIdAsync(Guid id)
+        {
+            var employee = await _employeeRepository.DeleteById(id);
+            return CreateEmployeeResponse(employee);
+        }
+
+        /// <summary>
+        /// Изменить пользователя
+        /// </summary>
+        /// <returns></returns>
+        [HttpPut("{id:guid}")]
+        public async Task<ActionResult<EmployeeResponse>> UpdateUserByIdAsync(Guid id,
+            string newFirstName, string newLastName)
+        {
+            var employee = await _employeeRepository.GetByIdAsync(id);
+
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            employee.FirstName = newFirstName;
+            employee.LastName = newLastName;
+            return CreateEmployeeResponse(employee);
+        }
+
+        private EmployeeResponse CreateEmployeeResponse(Employee employee)
+        {
+            return new EmployeeResponse()
             {
                 Id = employee.Id,
                 Email = employee.Email,
@@ -67,22 +131,6 @@ namespace PromoCodeFactory.WebHost.Controllers
                 FullName = employee.FullName,
                 AppliedPromocodesCount = employee.AppliedPromocodesCount
             };
-
-            return employeeModel;
-        }
-
-        [HttpPost]
-        public Task<ActionResult<EmployeeResponse>> Create(string firstName, string lastName)
-        {
-            var newEmployee = new Employee
-            {
-                Id = Guid.NewGuid(),
-                FirstName = firstName,
-                LastName = lastName
-            };
-            
-            _employeeRepository.Create(newEmployee);
-            return Task.FromResult<ActionResult<EmployeeResponse>>(Created());
         }
     }
 }
