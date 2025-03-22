@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PromoCodeFactory.Core.Abstractions.Repositories;
 using PromoCodeFactory.Core.Domain.Administration;
+using PromoCodeFactory.DataAccess.Data;
 using PromoCodeFactory.WebHost.Models;
 
 namespace PromoCodeFactory.WebHost.Controllers
@@ -19,9 +22,13 @@ namespace PromoCodeFactory.WebHost.Controllers
     {
         private readonly IRepository<Employee> _employeeRepository;
 
-        public EmployeesController(IRepository<Employee> employeeRepository)
+        public EmployeesController(IRepository<Employee> employeeRepository, DataBaseContext context)
         {
             _employeeRepository = employeeRepository;
+            
+            var test = context.Employees.Include(employee
+                => employee.Role).ToList();
+            Console.Write(test[0].Role);
         }
 
         /// <summary>

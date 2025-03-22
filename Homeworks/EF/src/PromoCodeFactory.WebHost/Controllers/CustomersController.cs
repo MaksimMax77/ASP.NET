@@ -2,6 +2,7 @@
 using PromoCodeFactory.WebHost.Models;
 using System;
 using System.Threading.Tasks;
+using PromoCodeFactory.DataAccess.Data;
 
 namespace PromoCodeFactory.WebHost.Controllers
 {
