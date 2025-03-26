@@ -11,18 +11,20 @@ namespace PromoCodeFactory.DataAccess.Data
         private static List<Role> _roles;
         private static List<Preference> _preferences;
         private static List<Customer> _customers;
+        private static List<PromoCode> _promoCodes;
 
         public static List<Employee> Employees => _employees;
         public static List<Role> Roles => _roles;
         public static List<Preference> Preferences => _preferences;
         public static List<Customer> Customers => _customers;
+        public static List<PromoCode>  PromoCodes => _promoCodes;
         
-
         public static void Generate()
         {
             GenerateRoles();
             GenerateEmployees();
             GeneratePreferences();
+            GeneratePromoCodes();
             GenerateCustomers();
         }
         
@@ -106,7 +108,22 @@ namespace PromoCodeFactory.DataAccess.Data
                     Email = "ivan_sergeev@mail.ru",
                     FirstName = "Иван",
                     LastName = "Петров",
-                    //TODO: Добавить предзаполненный список предпочтений
+                    PromoCodeId = _promoCodes[0].Id,
+                    CustomerPreferenceId = _preferences[0].Id,
+                }
+            ];
+        }
+
+        private static void GeneratePromoCodes()
+        {
+            _promoCodes =
+            [
+                new PromoCode
+                {
+                    Id = Guid.Parse("4C473795-40AF-435C-8F14-E2143D37F591"),
+                    ServiceInfo = "Театр промокод",
+                    PartnerManagerId = _employees[1].Id,
+                    PreferenceId = _preferences[0].Id,
                 }
             ];
         }

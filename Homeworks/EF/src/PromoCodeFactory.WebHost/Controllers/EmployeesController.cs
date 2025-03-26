@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using PromoCodeFactory.Core.Abstractions.Repositories;
 using PromoCodeFactory.Core.Domain.Administration;
-using PromoCodeFactory.DataAccess.Data;
 using PromoCodeFactory.WebHost.Models;
 
 namespace PromoCodeFactory.WebHost.Controllers
@@ -20,15 +17,27 @@ namespace PromoCodeFactory.WebHost.Controllers
     public class EmployeesController
         : ControllerBase
     {
-        private readonly IRepository<Employee> _employeeRepository;
+        private IRepository<Employee> _employeeRepository;
 
-        public EmployeesController(IRepository<Employee> employeeRepository, DataBaseContext context)
+        public EmployeesController(IRepository<Employee> employeesRepository)
         {
-            _employeeRepository = employeeRepository;
-            
-            var test = context.Employees.Include(employee
-                => employee.Role).ToList();
-            Console.Write(test[0].Role);
+            _employeeRepository = employeesRepository;
+        }
+
+        [HttpPost]
+        public ActionResult<EmployeeResponse> CreateEmployee(string firstName, string lastName, Guid roleId)
+        {
+            var employee = new Employee()
+            {
+                Id = Guid.NewGuid(),
+                FirstName = firstName,
+                LastName = lastName,
+                RoleId = roleId
+            };
+
+            _employeeRepository.Create(employee);
+
+            return CreateEmployeeResponse(employee);
         }
 
         /// <summary>
@@ -39,13 +48,14 @@ namespace PromoCodeFactory.WebHost.Controllers
         public async Task<List<EmployeeShortResponse>> GetEmployeesAsync()
         {
             var employees = await _employeeRepository.GetAllAsync();
-
+            
             var employeesModelList = employees.Select(x =>
                 new EmployeeShortResponse()
                 {
                     Id = x.Id,
                     Email = x.Email,
                     FullName = x.FullName,
+                    RoleId = x.RoleId
                 }).ToList();
 
             return employeesModelList;
@@ -62,7 +72,42 @@ namespace PromoCodeFactory.WebHost.Controllers
 
             if (employee == null)
                 return NotFound();
+            
+            return CreateEmployeeResponse(employee);
+        }
+        
+        [HttpPut("{id:guid}")]
+        public async Task<ActionResult<EmployeeResponse>> UpdateEmployeeByIdAsync(Guid id,
+            string firstName, string lastName)
+        {
+            var employee = await _employeeRepository.GetByIdAsync(id);
+            
+            if (employee == null)
+                return NotFound();
+            
+            employee.FirstName = firstName;
+            employee.LastName = lastName;
+            
+            await _employeeRepository.UpdateAsync(employee);
+            
+            return CreateEmployeeResponse(employee);
+        }
+        
+        [HttpDelete("{id:guid}")]
+        public async Task<ActionResult<EmployeeResponse>> DeleteEmployeeByIdAsync(Guid id)
+        {
+            var employee = await _employeeRepository.GetByIdAsync(id);
+            
+            if (employee == null)
+                return NotFound();
+            
+            _employeeRepository.Delete(employee);
+            
+            return CreateEmployeeResponse(employee);
+        }
 
+        private EmployeeResponse CreateEmployeeResponse(Employee employee)
+        {
             var employeeModel = new EmployeeResponse()
             {
                 Id = employee.Id,
@@ -75,7 +120,6 @@ namespace PromoCodeFactory.WebHost.Controllers
                 FullName = employee.FullName,
                 AppliedPromocodesCount = employee.AppliedPromocodesCount
             };
-
             return employeeModel;
         }
     }
