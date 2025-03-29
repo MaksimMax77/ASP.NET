@@ -40,7 +40,7 @@ namespace PromoCodeFactory.WebHost.Controllers
                 FirstName = firstName,
                 LastName = lastName,
                 PromoCodeId = promoCodeId,
-            };//todo скорей всего если хочется добавить Preference, то нужно брать DbSet CustomerPreferences и добавлять туда 
+            };/*//todo скорей всего если хочется добавить Preference, то нужно брать DbSet CustomerPreferences и добавлять туда 
 
             customer.CustomerPreference =
             [
@@ -49,7 +49,7 @@ namespace PromoCodeFactory.WebHost.Controllers
                     CustomerId = id,
                     PreferenceId = customerPreferenceId
                 }
-            ];
+            ];*/
  
             _repository.Create(customer);
 
