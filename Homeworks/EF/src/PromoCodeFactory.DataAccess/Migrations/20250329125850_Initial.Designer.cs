@@ -11,7 +11,7 @@ using PromoCodeFactory.DataAccess.Data;
 namespace PromoCodeFactory.DataAccess.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    [Migration("20250325122949_Initial")]
+    [Migration("20250329125850_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -105,9 +105,6 @@ namespace PromoCodeFactory.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("CustomerPreferenceId")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Email")
                         .HasColumnType("TEXT");
 
@@ -122,8 +119,6 @@ namespace PromoCodeFactory.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CustomerPreferenceId");
-
                     b.HasIndex("PromoCodeId");
 
                     b.ToTable("Customers");
@@ -132,11 +127,37 @@ namespace PromoCodeFactory.DataAccess.Migrations
                         new
                         {
                             Id = new Guid("a6c8c6b1-4349-45b0-ab31-244740aaf0f0"),
-                            CustomerPreferenceId = new Guid("ef7f299f-92d7-459f-896e-078ed53ef99c"),
                             Email = "ivan_sergeev@mail.ru",
                             FirstName = "Иван",
                             LastName = "Петров",
                             PromoCodeId = new Guid("4c473795-40af-435c-8f14-e2143d37f591")
+                        });
+                });
+
+            modelBuilder.Entity("PromoCodeFactory.Core.Domain.PromoCodeManagement.CustomerPreference", b =>
+                {
+                    b.Property<Guid>("PreferenceId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("PreferenceId", "CustomerId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("CustomerPreferences");
+
+                    b.HasData(
+                        new
+                        {
+                            PreferenceId = new Guid("ef7f299f-92d7-459f-896e-078ed53ef99c"),
+                            CustomerId = new Guid("a6c8c6b1-4349-45b0-ab31-244740aaf0f0")
+                        },
+                        new
+                        {
+                            PreferenceId = new Guid("c4bda62e-fc74-4256-a956-4760b3858cbd"),
+                            CustomerId = new Guid("a6c8c6b1-4349-45b0-ab31-244740aaf0f0")
                         });
                 });
 
@@ -177,13 +198,13 @@ namespace PromoCodeFactory.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("BeginDate")
+                    b.Property<string>("BeginDate")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Code")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("EndDate")
+                    b.Property<string>("EndDate")
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("PartnerManagerId")
@@ -210,8 +231,6 @@ namespace PromoCodeFactory.DataAccess.Migrations
                         new
                         {
                             Id = new Guid("4c473795-40af-435c-8f14-e2143d37f591"),
-                            BeginDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            EndDate = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             PartnerManagerId = new Guid("f766e2bf-340a-46ea-bff3-f1700b435895"),
                             PreferenceId = new Guid("ef7f299f-92d7-459f-896e-078ed53ef99c"),
                             ServiceInfo = "Театр промокод"
@@ -231,21 +250,32 @@ namespace PromoCodeFactory.DataAccess.Migrations
 
             modelBuilder.Entity("PromoCodeFactory.Core.Domain.PromoCodeManagement.Customer", b =>
                 {
-                    b.HasOne("PromoCodeFactory.Core.Domain.PromoCodeManagement.Preference", "CustomerPreference")
-                        .WithMany("Customers")
-                        .HasForeignKey("CustomerPreferenceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("PromoCodeFactory.Core.Domain.PromoCodeManagement.PromoCode", "PromoCode")
                         .WithMany("Customers")
                         .HasForeignKey("PromoCodeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CustomerPreference");
-
                     b.Navigation("PromoCode");
+                });
+
+            modelBuilder.Entity("PromoCodeFactory.Core.Domain.PromoCodeManagement.CustomerPreference", b =>
+                {
+                    b.HasOne("PromoCodeFactory.Core.Domain.PromoCodeManagement.Customer", "Customer")
+                        .WithMany("CustomerPreference")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PromoCodeFactory.Core.Domain.PromoCodeManagement.Preference", "Preference")
+                        .WithMany("CustomerPreference")
+                        .HasForeignKey("PreferenceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Preference");
                 });
 
             modelBuilder.Entity("PromoCodeFactory.Core.Domain.PromoCodeManagement.PromoCode", b =>
@@ -277,9 +307,14 @@ namespace PromoCodeFactory.DataAccess.Migrations
                     b.Navigation("Employees");
                 });
 
+            modelBuilder.Entity("PromoCodeFactory.Core.Domain.PromoCodeManagement.Customer", b =>
+                {
+                    b.Navigation("CustomerPreference");
+                });
+
             modelBuilder.Entity("PromoCodeFactory.Core.Domain.PromoCodeManagement.Preference", b =>
                 {
-                    b.Navigation("Customers");
+                    b.Navigation("CustomerPreference");
 
                     b.Navigation("PromoCodes");
                 });

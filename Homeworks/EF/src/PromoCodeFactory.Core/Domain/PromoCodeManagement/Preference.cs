@@ -10,5 +10,6 @@ namespace PromoCodeFactory.Core.Domain.PromoCodeManagement
         public List<PromoCode> PromoCodes { get; set; }
         
         public List<Customer> Customers { get; set; }
+        public List<CustomerPreference> CustomerPreference { get; set; }
     }
 }

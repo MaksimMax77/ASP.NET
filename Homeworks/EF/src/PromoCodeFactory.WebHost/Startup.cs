@@ -1,4 +1,3 @@
-using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -22,8 +21,11 @@ namespace PromoCodeFactory.WebHost
   
             services.AddScoped<IRepository<Employee>>(provider =>
                 new EfRepository<Employee>(provider.GetService<DataBaseContext>()));
-
-           
+            services.AddScoped<IRepository<Customer>>(provider =>
+                new EfRepository<Customer>(provider.GetService<DataBaseContext>()));
+            services.AddScoped<IRepository<PromoCode>>(provider =>
+                new EfRepository<PromoCode>(provider.GetService<DataBaseContext>()));
+            
             
             services.AddControllers();
             /*FakeDataFactory.Generate();

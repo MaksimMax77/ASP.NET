@@ -12,12 +12,14 @@ namespace PromoCodeFactory.DataAccess.Data
         private static List<Preference> _preferences;
         private static List<Customer> _customers;
         private static List<PromoCode> _promoCodes;
+        private static List<CustomerPreference> _customerPreferences;
 
         public static List<Employee> Employees => _employees;
         public static List<Role> Roles => _roles;
         public static List<Preference> Preferences => _preferences;
         public static List<Customer> Customers => _customers;
         public static List<PromoCode>  PromoCodes => _promoCodes;
+        public static List<CustomerPreference>  CustomerPreferences => _customerPreferences;
         
         public static void Generate()
         {
@@ -26,6 +28,7 @@ namespace PromoCodeFactory.DataAccess.Data
             GeneratePreferences();
             GeneratePromoCodes();
             GenerateCustomers();
+            GenerateCustomerPreferences();
         }
         
         private static void GenerateRoles()
@@ -97,23 +100,42 @@ namespace PromoCodeFactory.DataAccess.Data
                 }
             ];
         }
-
+        
         private static void GenerateCustomers()
         {
+            var id = Guid.Parse("a6c8c6b1-4349-45b0-ab31-244740aaf0f0");
+
             _customers =
             [
                 new Customer()
                 {
-                    Id = Guid.Parse("a6c8c6b1-4349-45b0-ab31-244740aaf0f0"),
+                    Id = id,
                     Email = "ivan_sergeev@mail.ru",
                     FirstName = "Иван",
                     LastName = "Петров",
                     PromoCodeId = _promoCodes[0].Id,
-                    CustomerPreferenceId = _preferences[0].Id,
                 }
             ];
         }
 
+        private static void GenerateCustomerPreferences()
+        {
+            _customerPreferences =
+            [
+                new CustomerPreference()
+                {
+                    CustomerId = _customers[0].Id,
+                    PreferenceId = _preferences[0].Id,
+                },
+
+                new CustomerPreference()
+                {
+                    CustomerId = _customers[0].Id,
+                    PreferenceId = _preferences[1].Id,
+                }
+            ];
+        }
+        
         private static void GeneratePromoCodes()
         {
             _promoCodes =

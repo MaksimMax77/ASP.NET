@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using PromoCodeFactory.Core.Domain;
 using PromoCodeFactory.Core.Domain.Administration;
 using PromoCodeFactory.Core.Domain.PromoCodeManagement;
 
@@ -18,24 +17,32 @@ public class DataBaseContext : DbContext
     public DbSet<Preference> Preferences { get; set; }
     public DbSet<PromoCode> PromoCodes { get; set; }
     public DbSet<Customer> Customers { get; set; }
+    
+    public DbSet<CustomerPreference> CustomerPreferences { get; set; }
 
     public DataBaseContext(DbContextOptions<DataBaseContext> options) : base(options)
     {
-        var promoCodes = PromoCodes
-            .Include((a) => a.Preference)
-            .Include((a) => a.Customers).ToList();
+        var promocodes = PromoCodes
+            .Include(c => c.Preference)
+            .Include(c => c.PartnerManager)
+            .ToList();
         
-        var employees = Employees.Include(a => a.Role).ToList();
+        var employees = Employees
+            .Include(e => e.Role)
+            .ToList();
 
-        _entities.Add(typeof(PromoCode), promoCodes);
+        var customers = Customers
+            .Include(c => c.PromoCode)
+            .Include(customer => customer.Preferences)
+            .ToList();
+
+        var preferences = Preferences.ToList();
+        
+        _entities.Add(typeof(PromoCode), promocodes);
         _entities.Add(typeof(Employee), employees);
+        _entities.Add(typeof(Customer), customers); // todo весь код конструктора нужно перенести в отдельный класс, включая метод TryGetEntities
+        _entities.Add(typeof(Preference), preferences);
     }
-
-    /*public bool TryGetDbSet<T>(out DbSet<T> dbSet) where T: BaseEntity 
-    {
-        dbSet = _entities[typeof(T)] as DbSet<T>;
-        return dbSet != null;
-    }*/
  
     public bool TryGetEntities<T>(out ICollection<T> entities)
     {
@@ -77,16 +84,29 @@ public class DataBaseContext : DbContext
             .HasForeignKey(c => c.PromoCodeId)
             .IsRequired();
         
-        modelBuilder.Entity<Customer>()
-            .HasOne(c => c.CustomerPreference)
-            .WithMany(p => p.Customers)
-            .HasForeignKey(c => c.CustomerPreferenceId)
-            .IsRequired();
-
+        modelBuilder
+            .Entity<Preference>()
+            .HasMany(p => p.Customers)
+            .WithMany(s => s.Preferences)
+            .UsingEntity<CustomerPreference>(
+                j => j
+                    .HasOne(cp => cp.Customer)
+                    .WithMany(c => c.CustomerPreference)
+                    .HasForeignKey(cp => cp.CustomerId),
+                j => j
+                    .HasOne(cp => cp.Preference)
+                    .WithMany(p => p.CustomerPreference)
+                    .HasForeignKey(cp => cp.PreferenceId),
+                j =>
+                {
+                    j.HasKey(cp => new { cp.PreferenceId, cp.CustomerId });
+                });
+        
         modelBuilder.Entity<Role>().HasData(FakeDataFactory.Roles);
         modelBuilder.Entity<Employee>().HasData(FakeDataFactory.Employees);
         modelBuilder.Entity<Preference>().HasData(FakeDataFactory.Preferences);
         modelBuilder.Entity<PromoCode>().HasData(FakeDataFactory.PromoCodes);
         modelBuilder.Entity<Customer>().HasData(FakeDataFactory.Customers);
+        modelBuilder.Entity<CustomerPreference>().HasData(FakeDataFactory.CustomerPreferences);
     }
 }

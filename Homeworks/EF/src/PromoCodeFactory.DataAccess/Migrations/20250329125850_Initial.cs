@@ -67,8 +67,8 @@ namespace PromoCodeFactory.DataAccess.Migrations
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     Code = table.Column<string>(type: "TEXT", nullable: true),
                     ServiceInfo = table.Column<string>(type: "TEXT", nullable: true),
-                    BeginDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    BeginDate = table.Column<string>(type: "TEXT", nullable: true),
+                    EndDate = table.Column<string>(type: "TEXT", nullable: true),
                     PartnerName = table.Column<string>(type: "TEXT", nullable: true),
                     PartnerManagerId = table.Column<Guid>(type: "TEXT", nullable: false),
                     PreferenceId = table.Column<Guid>(type: "TEXT", nullable: false)
@@ -98,22 +98,39 @@ namespace PromoCodeFactory.DataAccess.Migrations
                     FirstName = table.Column<string>(type: "TEXT", nullable: true),
                     LastName = table.Column<string>(type: "TEXT", nullable: true),
                     Email = table.Column<string>(type: "TEXT", nullable: true),
-                    PromoCodeId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    CustomerPreferenceId = table.Column<Guid>(type: "TEXT", nullable: false)
+                    PromoCodeId = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Customers", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Customers_Preferences_CustomerPreferenceId",
-                        column: x => x.CustomerPreferenceId,
-                        principalTable: "Preferences",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_Customers_PromoCodes_PromoCodeId",
                         column: x => x.PromoCodeId,
                         principalTable: "PromoCodes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CustomerPreferences",
+                columns: table => new
+                {
+                    CustomerId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    PreferenceId = table.Column<Guid>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CustomerPreferences", x => new { x.PreferenceId, x.CustomerId });
+                    table.ForeignKey(
+                        name: "FK_CustomerPreferences_Customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "Customers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CustomerPreferences_Preferences_PreferenceId",
+                        column: x => x.PreferenceId,
+                        principalTable: "Preferences",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -149,17 +166,26 @@ namespace PromoCodeFactory.DataAccess.Migrations
             migrationBuilder.InsertData(
                 table: "PromoCodes",
                 columns: new[] { "Id", "BeginDate", "Code", "EndDate", "PartnerManagerId", "PartnerName", "PreferenceId", "ServiceInfo" },
-                values: new object[] { new Guid("4c473795-40af-435c-8f14-e2143d37f591"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new Guid("f766e2bf-340a-46ea-bff3-f1700b435895"), null, new Guid("ef7f299f-92d7-459f-896e-078ed53ef99c"), "Театр промокод" });
+                values: new object[] { new Guid("4c473795-40af-435c-8f14-e2143d37f591"), null, null, null, new Guid("f766e2bf-340a-46ea-bff3-f1700b435895"), null, new Guid("ef7f299f-92d7-459f-896e-078ed53ef99c"), "Театр промокод" });
 
             migrationBuilder.InsertData(
                 table: "Customers",
-                columns: new[] { "Id", "CustomerPreferenceId", "Email", "FirstName", "LastName", "PromoCodeId" },
-                values: new object[] { new Guid("a6c8c6b1-4349-45b0-ab31-244740aaf0f0"), new Guid("ef7f299f-92d7-459f-896e-078ed53ef99c"), "ivan_sergeev@mail.ru", "Иван", "Петров", new Guid("4c473795-40af-435c-8f14-e2143d37f591") });
+                columns: new[] { "Id", "Email", "FirstName", "LastName", "PromoCodeId" },
+                values: new object[] { new Guid("a6c8c6b1-4349-45b0-ab31-244740aaf0f0"), "ivan_sergeev@mail.ru", "Иван", "Петров", new Guid("4c473795-40af-435c-8f14-e2143d37f591") });
+
+            migrationBuilder.InsertData(
+                table: "CustomerPreferences",
+                columns: new[] { "CustomerId", "PreferenceId" },
+                values: new object[,]
+                {
+                    { new Guid("a6c8c6b1-4349-45b0-ab31-244740aaf0f0"), new Guid("c4bda62e-fc74-4256-a956-4760b3858cbd") },
+                    { new Guid("a6c8c6b1-4349-45b0-ab31-244740aaf0f0"), new Guid("ef7f299f-92d7-459f-896e-078ed53ef99c") }
+                });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Customers_CustomerPreferenceId",
-                table: "Customers",
-                column: "CustomerPreferenceId");
+                name: "IX_CustomerPreferences_CustomerId",
+                table: "CustomerPreferences",
+                column: "CustomerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Customers_PromoCodeId",
@@ -185,6 +211,9 @@ namespace PromoCodeFactory.DataAccess.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "CustomerPreferences");
+
             migrationBuilder.DropTable(
                 name: "Customers");
 
