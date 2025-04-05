@@ -16,7 +16,7 @@ namespace PromoCodeFactory.DataAccess.Repositories
         {
             _dataBaseContext = context;
         }
-        
+
         public void Create(T entity)
         {
             var dbSet = _dataBaseContext.Set<T>();

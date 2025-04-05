@@ -10,7 +10,9 @@ namespace PromoCodeFactory.WebHost.Models
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
-        public List<CustomerPreference> customerPreferences { get; set; }
-        public List<PromoCodeShortResponse> PromoCodes { get; set; }
+
+        public PromoCodeShortResponse PromoCodeShortResponse { get; set; }
+        
+        public List<PreferenceResponse> Preferences { get; set; }
     }
 }

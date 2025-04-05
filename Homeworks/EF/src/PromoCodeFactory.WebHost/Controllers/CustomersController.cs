@@ -23,37 +23,46 @@ namespace PromoCodeFactory.WebHost.Controllers
         {
             _repository = repository;
         }
-        
+
         /// <summary>
         /// создать нового Customer
         /// </summary>
         /// <returns></returns>
         [HttpPost]
-        public ActionResult<CustomerResponse> CreateCustomer(string firstName, string lastName,
+        public async Task<CustomerResponse> CreateCustomer(string firstName, string lastName,
             Guid promoCodeId, Guid customerPreferenceId)
         {
             var id = Guid.NewGuid();
-            
             var customer = new Customer()
             {
                 Id = id,
                 FirstName = firstName,
                 LastName = lastName,
                 PromoCodeId = promoCodeId,
-            };/*//todo скорей всего если хочется добавить Preference, то нужно брать DbSet CustomerPreferences и добавлять туда 
+            };
 
-            customer.CustomerPreference =
-            [
-                new CustomerPreference()
-                {
-                    CustomerId = id,
-                    PreferenceId = customerPreferenceId
-                }
-            ];*/
- 
             _repository.Create(customer);
 
+            await AddPreferenceByCustomerId(id, customerPreferenceId);
+
             return CreateCustomerResponse(customer);
+        }
+
+        private async Task AddPreferenceByCustomerId(Guid customerId, Guid customerPreferenceId)
+        {
+            var currentCustomer = await _repository.GetByIdAsync(customerId);
+
+            var customerPreference = new CustomerPreference()
+            {
+                CustomerId = currentCustomer.Id,
+                PreferenceId =  customerPreferenceId
+            };
+
+            currentCustomer.CustomerPreference.Add(customerPreference);
+            
+            Console.WriteLine(currentCustomer.CustomerPreference);
+
+            await _repository.UpdateAsync(currentCustomer);
         }
         
         /// <summary>
@@ -64,8 +73,8 @@ namespace PromoCodeFactory.WebHost.Controllers
         public async Task<List<CustomerShortResponse>> GetCustomersAsync()
         {
             var сustomers = await _repository.GetAllAsync();
-
             var responses = сustomers.Select(x =>
+                
                 new CustomerShortResponse()
                 {
                     Id = x.Id,
@@ -77,6 +86,10 @@ namespace PromoCodeFactory.WebHost.Controllers
             return responses;
         }
 
+        /// <summary>
+        /// Получить Customer по id
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("{id}")]
         public async Task<ActionResult<CustomerResponse>> GetCustomerAsync(Guid id)
         {
@@ -88,6 +101,10 @@ namespace PromoCodeFactory.WebHost.Controllers
             return CreateCustomerResponse(customer);
         }
 
+        /// <summary>
+        /// изменить Customer по id firstName и lastName
+        /// </summary>
+        /// <returns></returns>
         [HttpPut("{id:guid}")]
         public async Task<ActionResult<CustomerResponse>> EditCustomersAsync(Guid id, string firstName, string lastName)
         {
@@ -105,8 +122,12 @@ namespace PromoCodeFactory.WebHost.Controllers
             //TODO: Обновить данные клиента вместе с его предпочтениями
         }
 
+        /// <summary>
+        /// удалить Customer по id
+        /// </summary>
+        /// <returns></returns>
         [HttpDelete("{id:guid}")]
-        public async  Task<ActionResult<CustomerResponse>> DeleteCustomer(Guid id)
+        public async Task<ActionResult<CustomerResponse>> DeleteCustomer(Guid id)
         {
             var employee = await _repository.GetByIdAsync(id);
             
@@ -117,7 +138,8 @@ namespace PromoCodeFactory.WebHost.Controllers
             
             return CreateCustomerResponse(employee);
         }
-        
+
+        #region CustomerResponseGeneration
         private CustomerResponse CreateCustomerResponse(Customer customer)
         {
             var customerResponse = new CustomerResponse()
@@ -126,9 +148,34 @@ namespace PromoCodeFactory.WebHost.Controllers
                 Email = customer.Email,
                 FirstName = customer.FirstName,
                 LastName = customer.LastName,
-                customerPreferences = customer.CustomerPreference
+                PromoCodeShortResponse = CreatePromoCodeShortResponse(customer),
+                Preferences = CreatePreferenceResponses(customer)
             };
+
             return customerResponse;
         }
+
+        private PromoCodeShortResponse CreatePromoCodeShortResponse(Customer customer)
+        {
+            return new PromoCodeShortResponse()
+            {
+                Id = customer.PromoCodeId,
+                Code = customer.PromoCode.Code,
+                ServiceInfo = customer.PromoCode.ServiceInfo,
+                BeginDate = customer.PromoCode.BeginDate,
+                EndDate = customer.PromoCode.EndDate,
+                PartnerName = customer.PromoCode.PartnerName
+            };
+        }
+
+        private List<PreferenceResponse> CreatePreferenceResponses(Customer customer)
+        {
+            return customer.CustomerPreference.Select(preference => new PreferenceResponse()
+            {
+                Id = preference.PreferenceId,
+                Name = preference.Preference.Name
+            }).ToList();
+        }
+        #endregion
     }
 }

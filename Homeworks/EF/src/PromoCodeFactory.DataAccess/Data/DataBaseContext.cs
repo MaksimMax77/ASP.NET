@@ -10,8 +10,6 @@ namespace PromoCodeFactory.DataAccess.Data;
 
 public class DataBaseContext : DbContext
 {
-    private Dictionary<Type, ICollection> _entities = new();
-    
     public DbSet<Role> Roles { get; set; }
     public DbSet<Employee> Employees { get; set; }
     public DbSet<Preference> Preferences { get; set; }
@@ -22,11 +20,23 @@ public class DataBaseContext : DbContext
 
     public DataBaseContext(DbContextOptions<DataBaseContext> options) : base(options)
     {
+    }
+ 
+    public bool TryGetEntities<T>(out ICollection<T> entities)
+    {
+        entities =  GetEntities()[typeof(T)]  as ICollection<T>;
+        return entities != null;
+    }
+
+    private Dictionary<Type, ICollection> GetEntities()
+    {
+        var entities = new Dictionary<Type, ICollection>();
+        
         var promocodes = PromoCodes
             .Include(c => c.Preference)
             .Include(c => c.PartnerManager)
             .ToList();
-        
+
         var employees = Employees
             .Include(e => e.Role)
             .ToList();
@@ -34,20 +44,16 @@ public class DataBaseContext : DbContext
         var customers = Customers
             .Include(c => c.PromoCode)
             .Include(customer => customer.Preferences)
+            .Include(customer => customer.CustomerPreference)
             .ToList();
 
         var preferences = Preferences.ToList();
-        
-        _entities.Add(typeof(PromoCode), promocodes);
-        _entities.Add(typeof(Employee), employees);
-        _entities.Add(typeof(Customer), customers); // todo весь код конструктора нужно перенести в отдельный класс, включая метод TryGetEntities
-        _entities.Add(typeof(Preference), preferences);
-    }
- 
-    public bool TryGetEntities<T>(out ICollection<T> entities)
-    {
-        entities = _entities[typeof(T)] as ICollection<T>;
-        return entities != null;
+
+        entities.Add(typeof(PromoCode), promocodes);
+        entities.Add(typeof(Employee), employees);
+        entities.Add(typeof(Customer), customers);
+        entities.Add(typeof(Preference), preferences);
+        return entities;
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
