@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime;
-using PromoCodeFactory.Core.Domain;
 using PromoCodeFactory.Core.Domain.Administration;
 
 namespace PromoCodeFactory.Core.Domain.PromoCodeManagement

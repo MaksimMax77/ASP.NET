@@ -7,7 +7,7 @@ namespace PromoCodeFactory.WebHost.Models
         public Guid Id { get; set; }
 
         public string Code { get; set; }
-
+        
         public string ServiceInfo { get; set; }
 
         public string BeginDate { get; set; }

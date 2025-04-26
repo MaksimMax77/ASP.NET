@@ -59,9 +59,6 @@ namespace PromoCodeFactory.WebHost.Controllers
             };
 
             currentCustomer.CustomerPreference.Add(customerPreference);
-            
-            Console.WriteLine(currentCustomer.CustomerPreference);
-
             await _repository.UpdateAsync(currentCustomer);
         }
         

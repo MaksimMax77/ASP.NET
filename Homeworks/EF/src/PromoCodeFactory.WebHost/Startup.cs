@@ -18,25 +18,17 @@ namespace PromoCodeFactory.WebHost
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<DataBaseContext>();
-  
+
             services.AddScoped<IRepository<Employee>>(provider =>
                 new EfRepository<Employee>(provider.GetService<DataBaseContext>()));
             services.AddScoped<IRepository<Customer>>(provider =>
                 new EfRepository<Customer>(provider.GetService<DataBaseContext>()));
             services.AddScoped<IRepository<PromoCode>>(provider =>
                 new EfRepository<PromoCode>(provider.GetService<DataBaseContext>()));
-            
-            
+            services.AddScoped<IRepository<Preference>>(provider =>
+                new EfRepository<Preference>(provider.GetService<DataBaseContext>()));
+
             services.AddControllers();
-            /*FakeDataFactory.Generate();
-            services.AddScoped(typeof(IRepository<Employee>), (x) =>
-                new InMemoryRepository<Employee>(FakeDataFactory.Employees));
-            services.AddScoped(typeof(IRepository<Role>), (x) =>
-                new InMemoryRepository<Role>(FakeDataFactory.Roles));
-            services.AddScoped(typeof(IRepository<Preference>), (x) =>
-                new InMemoryRepository<Preference>(FakeDataFactory.Preferences));
-            services.AddScoped(typeof(IRepository<Customer>), (x) =>
-                new InMemoryRepository<Customer>(FakeDataFactory.Customers));*/
 
             services.AddOpenApiDocument(options =>
             {
